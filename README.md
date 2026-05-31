@@ -53,60 +53,55 @@ CardioScan AI is a complete end-to-end pipeline:
 
 Download PTB-XL from: https://physionet.org/content/ptb-xl/1.0.3/
 
-> The dataset is **not included** in this repository due to size. Download it separately and place it at the path expected by the notebooks (see instructions below).
+> The dataset is not included in this repository due to size. Download it separately and place it at the path expected by the notebooks (see instructions below).
 
 **Class distribution (after single-label priority conversion):**
 
-| Class | Training samples | Test samples |
+| Class | Number of samples (before balancing) | 
 |---|---|---|
-| NORM | ~7,577 | 952 |
-| MI | ~4,379 | 550 |
-| STTC | ~3,131 | 382 |
-| CD | ~1,915 | 258 |
-| HYP | ~416 | 56 |
+| NORM | ~9,480 | 
+| MI | ~5,469 | 
+| STTC | ~3,896 | 
+| CD | ~2,417 |
+| HYP | ~537 |
 
 ---
 
 ## Repository Structure
 
 ```
-cardioscan-ai/
+ecg_app/
 ├── notebooks/
-│   ├── 01_main_hierarchical_model.ipynb    # Main model: gated fusion + hierarchical classifier
-│   ├── 02_smote_experiment.ipynb           # Experiment: SMOTE balancing
-│   ├── 03_direct_5class_experiment.ipynb   # Experiment: single-stage 5-class softmax
-│   ├── 04_ribeiro_experiment.ipynb         # Experiment: Ribeiro pretrained features
-│   └── 05_ablation_study.ipynb             # Ablation: ECG+Meta, ECG+Text, ECG only
-│
-├── ecg_app/                                # FastAPI web application
-│   ├── controllers/
-│   │   └── application_controller.py       # Orchestrates preprocessing + model
-│   ├── ecg_model_hierarchical/             # Saved TensorFlow models (see note below)
-│   │   ├── model_binary_v6/
-│   │   └── model_abn_v6/
-│   ├── models/
-│   │   └── multimodal_model.py             # Loads and runs TF SavedModels
-│   ├── processors/
-│   │   ├── ecg_processor.py                # ECG CSV validation + normalisation
-│   │   ├── metadata_processor.py           # Metadata feature engineering
-│   │   └── text_processor.py               # Tokenisation + padding
-│   ├── templates/
-│   │   ├── home.html                       # Landing page
-│   │   ├── analyze.html                    # ECG upload form
-│   │   ├── results.html                    # Prediction output
-│   │   ├── login.html                      # Patient portal login
-│   │   ├── dashboard.html                  # Patient overview
-│   │   └── reports.html                    # Report history
-│   ├── main.py                             # FastAPI app + all routes
-│   ├── database.py                         # SQLite schema + queries
-│   └── requirements.txt                    # Python dependencies
+│   ├── Ecg-signal-analysis-model (Hierarchical)    # Main model: gated fusion + hierarchical classifier
+│   ├── ECG-signal-analysis-model (direct)   # Experiment: single-stage 5-class softmax
+│                            
+├── controllers/
+│   └── application_controller.py       # Orchestrates preprocessing + model
+├── ecg_model_hierarchical/             # Saved TensorFlow models (see note below)
+│   ├── model_binary_v6/
+│   └── model_abn_v6/
+├── models/
+│   └── multimodal_model.py             # Loads and runs TF SavedModels
+├── processors/
+│   ├── ecg_processor.py                # ECG CSV validation + normalisation
+│   ├── metadata_processor.py           # Metadata feature engineering
+│   └── text_processor.py               # Tokenisation + padding
+├── templates/
+│   ├── home.html                       # Landing page
+│   ├── analyze.html                    # ECG upload form
+│   ├── results.html                    # Prediction output
+│   ├── login.html                      # Patient portal login
+│   ├── dashboard.html                  # Patient overview
+│   ├── reports.html                    # Report history
+├── main.py                             # FastAPI app + all routes
+├── database.py                         # SQLite schema + queries
+├──  requirements.txt                   # Python dependencies
 │
 ├── report/
-│   └── CardioScan_AI_Report.docx           # Full project report
+│   └── Detection of Cardiac Abnormalities using ECG Signals.docx           # Full project report
 │
 ├── .env.example                            # Template for environment variables
 ├── .gitignore
-└── README.md
 ```
 
 > **Note on saved models:** TensorFlow SavedModel folders can exceed GitHub's 100MB file limit. If the `ecg_model_hierarchical/` folder is not included here, download the models from [Google Drive link here] and place them inside `ecg_app/ecg_model_hierarchical/`.
