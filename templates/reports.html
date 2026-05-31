@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Reports - CardioScan AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --sage:#3d7a5e; --sage-light:#6aab8a; --sage-pale:#e8f5ee; --sage-mid:#c2dfd0;
+    --forest:#1a3d2b; --cream:#f7f6f2; --white:#ffffff; --ink:#1c2b22;
+    --ink-soft:#4a5e52; --border:#d4e8dc; --warn:#e67e22; --warn-bg:#fef3e2;
+    --shadow:rgba(61,122,94,0.10);
+  }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--ink); min-height:100vh; display:grid; grid-template-columns:260px 1fr; }
+  .sidebar { background:var(--forest); padding:36px 28px; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  .sidebar-logo { display:flex; align-items:center; gap:8px; margin-bottom:50px; }
+  .logo-dot { width:7px; height:7px; border-radius:50%; background:var(--sage-light); }
+  .logo-text { font-family:'DM Serif Display',serif; font-size:18px; color:var(--white); }
+  .nav-section-label { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.3); margin:28px 0 10px; padding-left:14px; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; color:rgba(255,255,255,.55); font-size:14px; font-weight:500; text-decoration:none; cursor:pointer; transition:background .2s,color .2s; margin-bottom:2px; }
+  .nav-item:hover { background:rgba(255,255,255,.07); color:var(--white); }
+  .nav-item.active { background:rgba(106,171,138,.2); color:var(--sage-light); }
+  .sidebar-spacer { flex:1; }
+  .logout-btn { display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:12px; color:rgba(255,255,255,.4); font-size:14px; cursor:pointer; border:1px solid rgba(255,255,255,.1); background:none; font-family:'DM Sans',sans-serif; width:100%; transition:all .2s; }
+  .logout-btn:hover { color:var(--white); background:rgba(255,255,255,.06); }
+  .main { padding:48px 52px 80px; }
+  .page-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:36px; flex-wrap:wrap; gap:16px; }
+  .page-header h1 { font-family:'DM Serif Display',serif; font-size:34px; color:var(--forest); margin-bottom:6px; }
+  .page-header p { font-size:15px; color:var(--ink-soft); }
+  .header-btn { background:var(--forest); color:var(--white); padding:12px 28px; border-radius:50px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; text-decoration:none; border:none; cursor:pointer; transition:background .2s; }
+  .header-btn:hover { background:var(--sage); }
+  .table-card { background:var(--white); border:1px solid var(--border); border-radius:24px; overflow:hidden; box-shadow:0 4px 20px var(--shadow); }
+  .table-header { padding:24px 32px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .table-header h3 { font-family:'DM Serif Display',serif; font-size:20px; color:var(--forest); }
+  .report-count { font-size:13px; background:var(--sage-pale); border:1px solid var(--sage-mid); padding:5px 14px; border-radius:20px; color:var(--sage); font-weight:600; }
+  table { width:100%; border-collapse:collapse; }
+  thead th { padding:14px 32px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); background:#fafcfa; border-bottom:1px solid var(--border); }
+  tbody td { padding:18px 32px; font-size:14px; color:var(--ink); border-bottom:1px solid var(--border); }
+  tbody tr:last-child td { border-bottom:none; }
+  tbody tr { transition:background .15s; }
+  tbody tr:hover { background:var(--sage-pale); }
+  .badge { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; }
+  .badge.low      { background:var(--sage-pale); color:var(--sage); }
+  .badge.moderate { background:var(--warn-bg);   color:var(--warn); }
+  .badge.high     { background:#fdf0ee; color:#c0392b; }
+  .view-btn { font-size:13px; font-weight:600; color:var(--sage); text-decoration:none; padding:6px 14px; border:1px solid var(--sage-mid); border-radius:8px; transition:all .2s; }
+  .view-btn:hover { background:var(--sage-pale); }
+  @media (max-width:900px) { body { grid-template-columns:1fr; } .sidebar { display:none; } .main { padding:28px 16px 60px; } thead th, tbody td { padding:14px 16px; } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo"><span class="logo-dot"></span><span class="logo-text">CardioScan AI</span></div>
+  <div class="nav-section-label">Main</div>
+  <a class="nav-item" href="/dashboard">Dashboard</a>
+  <a class="nav-item" href="/analyze">New Analysis</a>
+  <a class="nav-item active" href="/reports">My Reports</a>
+  <div class="nav-section-label">Account</div>
+  <div class="nav-item">Profile</div>
+  <div class="nav-item">Settings</div>
+  <div class="sidebar-spacer"></div>
+  <button class="logout-btn" id="logoutBtn">Sign Out</button>
+</aside>
+
+<main class="main">
+  <div class="page-header">
+    <div>
+      <h1>My ECG Reports</h1>
+      <p>Your full diagnostic history - Demo Patient</p>
+    </div>
+    <a href="/analyze" class="header-btn">+ New Analysis</a>
+  </div>
+  <div class="table-card">
+    <div class="table-header">
+      <h3>Report History</h3>
+      <span class="report-count" id="reportCount">—</span>
+    </div>
+    <table>
+      <thead><tr><th>Date</th><th>Diagnosis</th><th>Confidence</th><th>Risk</th><th></th></tr></thead>
+      <tbody id="reportTable"></tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+  (async () => {
+    try {
+      const r = await fetch('/api/me');
+      if (!r.ok) throw new Error();
+    } catch { window.location.href = '/login'; }
+  })();
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = '/';
+  });
+
+  const riskClass = r => r.toLowerCase().includes('high') ? 'high' : r.toLowerCase().includes('mod') ? 'moderate' : 'low';
+
+  fetch('/patient_history')
+    .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+    .then(data => {
+      document.getElementById('reportCount').textContent = data.length + ' reports';
+      document.getElementById('reportTable').innerHTML = data.map(r => `
+        <tr>
+          <td>${r.date}</td>
+          <td><strong>${r.diagnosis}</strong></td>
+          <td>${r.confidence}%</td>
+          <td><span class="badge ${riskClass(r.risk)}">${r.risk}</span></td>
+          <td><a href="/results" class="view-btn">View →</a></td>
+        </tr>`).join('');
+    })
+    .catch(() => window.location.href = '/login');
+</script>
+</body>
+</html>

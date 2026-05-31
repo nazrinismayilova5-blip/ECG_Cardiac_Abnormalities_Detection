@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECG Analysis - CardioScan AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --sage:       #3d7a5e;
+    --sage-light: #6aab8a;
+    --sage-pale:  #e8f5ee;
+    --sage-mid:   #c2dfd0;
+    --forest:     #1a3d2b;
+    --cream:      #f7f6f2;
+    --white:      #ffffff;
+    --ink:        #1c2b22;
+    --ink-soft:   #4a5e52;
+    --border:     #d4e8dc;
+    --err:        #c0392b;
+    --err-bg:     #fdf0ee;
+    --shadow:     rgba(61,122,94,0.12);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    min-height: 100vh;
+  }
+
+  .left-panel {
+    background: var(--forest);
+    padding: 50px 44px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    position: sticky; top: 0; height: 100vh;
+    overflow-y: auto;
+  }
+  .logo-link { text-decoration: none; display: flex; align-items: center; gap: 10px; margin-bottom: 50px; }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sage-light); }
+  .logo-text { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--white); }
+
+  .panel-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 38px; line-height: 1.1;
+    color: var(--white); margin-bottom: 16px;
+  }
+  .panel-title em { font-style: italic; color: var(--sage-light); }
+  .panel-desc { font-size: 15px; color: rgba(255,255,255,.55); line-height: 1.7; margin-bottom: 40px; }
+
+  .steps { display: flex; flex-direction: column; gap: 20px; }
+  .step { display: flex; align-items: flex-start; gap: 16px; }
+  .step-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(106,171,138,.2); border: 1px solid var(--sage-light);
+    color: var(--sage-light); font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .step-text h4 { font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 4px; }
+  .step-text p { font-size: 13px; color: rgba(255,255,255,.45); line-height: 1.5; }
+
+  .disclaimer {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 14px; padding: 18px;
+    font-size: 12px; color: rgba(255,255,255,.4); line-height: 1.6;
+  }
+
+  .right-panel { padding: 60px 60px; overflow-y: auto; }
+
+  .form-header { margin-bottom: 44px; }
+  .form-header h2 { font-family: 'DM Serif Display', serif; font-size: 30px; color: var(--forest); margin-bottom: 6px; }
+  .form-header p { font-size: 15px; color: var(--ink-soft); }
+
+  .form-section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 11px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--sage);
+    margin-bottom: 20px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title span { width: 20px; height: 1px; background: var(--sage-mid); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+
+  label { font-size: 13px; font-weight: 600; color: var(--ink); }
+  label .optional { font-weight: 400; color: var(--ink-soft); margin-left: 6px; }
+
+  input[type="number"],
+  input[type="text"],
+  textarea {
+    padding: 14px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; color: var(--ink);
+    background: var(--white); outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    width: 100%;
+  }
+  input:focus, textarea:focus {
+    border-color: var(--sage);
+    box-shadow: 0 0 0 3px rgba(61,122,94,.1);
+  }
+  input::placeholder, textarea::placeholder { color: #adc4b8; }
+  textarea { resize: vertical; min-height: 80px; }
+
+  .file-drop {
+    border: 2px dashed var(--sage-mid);
+    border-radius: 16px; padding: 36px;
+    text-align: center; cursor: pointer;
+    transition: all .2s; background: var(--white);
+    position: relative;
+  }
+  .file-drop:hover, .file-drop.drag { border-color: var(--sage); background: var(--sage-pale); }
+  .file-drop input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+  }
+  .upload-icon { font-size: 36px; margin-bottom: 12px; }
+  .upload-label { font-size: 15px; font-weight: 600; color: var(--forest); margin-bottom: 6px; }
+  .upload-hint { font-size: 13px; color: var(--ink-soft); }
+  .upload-success {
+    display: none; align-items: center; gap: 10px;
+    color: var(--sage); font-weight: 600; font-size: 15px;
+  }
+
+  .sex-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .sex-btn {
+    padding: 14px; border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--white); cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 500; color: var(--ink-soft);
+    transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .sex-btn:hover { border-color: var(--sage-mid); }
+  .sex-btn.active {
+    background: var(--sage-pale);
+    border-color: var(--sage);
+    color: var(--sage); font-weight: 600;
+  }
+
+  .symptom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .symptom-chip {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px; background: var(--white);
+    font-size: 13px; font-weight: 500; color: var(--ink-soft);
+    cursor: pointer; transition: all .2s; text-align: center;
+    user-select: none;
+  }
+  .symptom-chip:hover { border-color: var(--sage-mid); }
+  .symptom-chip.selected {
+    background: var(--sage-pale);
+    border-color: var(--sage);
+    color: var(--sage); font-weight: 600;
+  }
+
+  .submit-btn {
+    width: 100%; padding: 18px;
+    background: var(--forest); color: var(--white);
+    border: none; border-radius: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: background .25s, transform .2s, box-shadow .25s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 4px 20px var(--shadow);
+    margin-top: 10px;
+  }
+  .submit-btn:hover:not(:disabled) { background: var(--sage); transform: translateY(-2px); box-shadow: 0 8px 32px var(--shadow); }
+  .submit-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  .spinner {
+    display: none; width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: white; border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-msg {
+    display: none; background: var(--err-bg);
+    border: 1px solid #e8c4c0; border-radius: 12px;
+    padding: 14px 18px; color: var(--err);
+    font-size: 14px; margin-top: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .left-panel { height: auto; position: static; padding: 36px 28px; }
+    .right-panel { padding: 36px 28px; }
+    .form-row { grid-template-columns: 1fr; }
+    .symptom-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="left-panel">
+    <div>
+      <a href="/" class="logo-link">
+        <span class="logo-dot"></span>
+        <span class="logo-text">CardioScan AI</span>
+      </a>
+      <h1 class="panel-title">ECG<br><em>Analysis</em><br>Form</h1>
+      <p class="panel-desc">Provide your ECG file and patient data below. Model will generate a diagnostic report.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text">
+            <h4>Upload ECG CSV</h4>
+            <p>12-lead, 1000-sample CSV format required</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text">
+            <h4>Enter Patient Data</h4>
+            <p>Age, sex, height, and weight</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text">
+            <h4>Add Clinical Notes</h4>
+            <p>Optional symptoms and report text</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-text">
+            <h4>Receive Diagnosis</h4>
+            <p>AI prediction across 5 cardiac conditions</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="disclaimer">
+      ⚠ For research and educational purposes only. Not a substitute for clinical diagnosis by a licensed physician.
+    </div>
+  </aside>
+
+  <main class="right-panel">
+    <div class="form-header">
+      <h2>New ECG Analysis</h2>
+      <p>All fields marked without "optional" are required</p>
+    </div>
+
+    <form id="analysisForm">
+
+      <div class="form-section">
+        <div class="section-title"><span></span> ECG Data</div>
+        <div class="form-group">
+          <label>ECG Recording File</label>
+          <div class="file-drop" id="fileDrop">
+            <input type="file" name="ecg_file" id="ecgFile" accept=".csv" required>
+            <div id="uploadPrompt">
+              <div class="upload-icon">📂</div>
+              <div class="upload-label">Drop your ECG CSV file here</div>
+              <div class="upload-hint">or click to browse — .csv format, 1000×12 required</div>
+            </div>
+            <div class="upload-success" id="uploadSuccess">
+              <span>✓</span> <span id="fileName"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title"><span></span> Patient Information</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" name="age" id="age" placeholder="e.g. 45" min="1" max="120" required>
+          </div>
+          <div class="form-group">
+            <label>Biological Sex</label>
+            <div class="sex-toggle">
+              <button type="button" class="sex-btn" id="femaleBtn" onclick="setSex(0)">♀ Female</button>
+              <button type="button" class="sex-btn" id="maleBtn"   onclick="setSex(1)">♂ Male</button>
+            </div>
+            <input type="hidden" name="sex" id="sex">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="height">Height (cm)</label>
+            <input type="number" name="height" id="height" placeholder="e.g. 170" min="50" max="250" required>
+          </div>
+          <div class="form-group">
+            <label for="weight">Weight (kg)</label>
+            <input type="number" name="weight" id="weight" placeholder="e.g. 70" min="20" max="300" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title"><span></span> Clinical Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:12px;color:var(--ink-soft);">optional</span></div>
+        <div class="form-group">
+          <label>Reported Symptoms <span class="optional">Select all that apply</span></label>
+          <div class="symptom-grid">
+            <div class="symptom-chip" data-value="Chest pain">Chest pain</div>
+            <div class="symptom-chip" data-value="Palpitations">Palpitations</div>
+            <div class="symptom-chip" data-value="Fatigue">Fatigue</div>
+            <div class="symptom-chip" data-value="Shortness of breath">Breathlessness</div>
+            <div class="symptom-chip" data-value="Dizziness">Dizziness</div>
+            <div class="symptom-chip" data-value="Syncope">Syncope</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="textReport">Clinical Report Text <span class="optional">free text</span></label>
+          <textarea name="text" id="textReport" placeholder="Paste or type any clinical notes, history, or observations here…"></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">
+        <span id="btnText">Run ECG Analysis</span>
+        <div class="spinner" id="spinner"></div>
+      </button>
+
+      <div class="error-msg" id="errorMsg"></div>
+
+    </form>
+  </main>
+</div>
+
+<script>
+  function setSex(val) {
+    document.getElementById('sex').value = val;
+    document.getElementById('femaleBtn').classList.toggle('active', val === 0);
+    document.getElementById('maleBtn').classList.toggle('active',   val === 1);
+  }
+
+  document.querySelectorAll('.symptom-chip').forEach(chip => {
+    chip.addEventListener('click', () => chip.classList.toggle('selected'));
+  });
+
+  const drop     = document.getElementById('fileDrop');
+  const fileInput = document.getElementById('ecgFile');
+  const prompt   = document.getElementById('uploadPrompt');
+  const success  = document.getElementById('uploadSuccess');
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) {
+      document.getElementById('fileName').textContent = fileInput.files[0].name;
+      prompt.style.display  = 'none';
+      success.style.display = 'flex';
+    }
+  });
+  drop.addEventListener('dragover',  e => { e.preventDefault(); drop.classList.add('drag'); });
+  drop.addEventListener('dragleave', ()  => drop.classList.remove('drag'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('drag');
+    if (e.dataTransfer.files[0]) {
+      fileInput.files = e.dataTransfer.files;
+      fileInput.dispatchEvent(new Event('change'));
+    }
+  });
+
+  document.getElementById('analysisForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const errorEl = document.getElementById('errorMsg');
+    errorEl.style.display = 'none';
+
+    if (!document.getElementById('sex').value) {
+      errorEl.textContent = 'Please select biological sex.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const btn     = document.getElementById('submitBtn');
+    const spinner = document.getElementById('spinner');
+    const btnText = document.getElementById('btnText');
+    btn.disabled        = true;
+    btnText.textContent = 'Analysing…';
+    spinner.style.display = 'block';
+
+    const formData = new FormData(e.target);
+
+    const symptoms = [...document.querySelectorAll('.symptom-chip.selected')]
+                       .map(c => c.dataset.value);
+    let report = formData.get('text') || '';
+    if (symptoms.length) report += (report ? ' ' : '') + 'Symptoms: ' + symptoms.join(', ');
+    formData.set('text', report);
+
+    try {
+      const res = await fetch('/predict_full', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Server error: ' + res.status);
+      const data = await res.json();
+      localStorage.setItem('ecg_result', JSON.stringify(data));
+      window.location = '/results';
+    } catch (err) {
+      errorEl.textContent   = 'Analysis failed: ' + err.message;
+      errorEl.style.display = 'block';
+      btn.disabled          = false;
+      btnText.textContent   = 'Run ECG Analysis';
+      spinner.style.display = 'none';
+    }
+  };
+</script>
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - CardioScan AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --sage:#3d7a5e; --sage-light:#6aab8a; --sage-pale:#e8f5ee; --sage-mid:#c2dfd0;
+    --forest:#1a3d2b; --cream:#f7f6f2; --white:#ffffff; --ink:#1c2b22;
+    --ink-soft:#4a5e52; --border:#d4e8dc; --shadow:rgba(61,122,94,0.10);
+  }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--ink); min-height:100vh; display:grid; grid-template-columns:260px 1fr; }
+  .sidebar { background:var(--forest); padding:36px 28px; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  .sidebar-logo { display:flex; align-items:center; gap:8px; margin-bottom:50px; }
+  .logo-dot { width:7px; height:7px; border-radius:50%; background:var(--sage-light); }
+  .logo-text { font-family:'DM Serif Display',serif; font-size:18px; color:var(--white); }
+  .nav-section-label { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.3); margin:28px 0 10px; padding-left:14px; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px; color:rgba(255,255,255,.55); font-size:14px; font-weight:500; text-decoration:none; cursor:pointer; transition:background .2s,color .2s; margin-bottom:2px; }
+  .nav-item:hover { background:rgba(255,255,255,.07); color:var(--white); }
+  .nav-item.active { background:rgba(106,171,138,.2); color:var(--sage-light); }
+  .sidebar-spacer { flex:1; }
+  .logout-btn { display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:12px; color:rgba(255,255,255,.4); font-size:14px; cursor:pointer; border:1px solid rgba(255,255,255,.1); background:none; font-family:'DM Sans',sans-serif; width:100%; transition:all .2s; }
+  .logout-btn:hover { color:var(--white); background:rgba(255,255,255,.06); }
+  .main { padding:48px 52px 80px; overflow-y:auto; }
+  .page-header { margin-bottom:40px; }
+  .page-header h1 { font-family:'DM Serif Display',serif; font-size:34px; color:var(--forest); margin-bottom:6px; }
+  .page-header p { font-size:15px; color:var(--ink-soft); }
+  .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:36px; }
+  .stat-card { background:var(--white); border:1px solid var(--border); border-radius:20px; padding:26px 24px; transition:transform .2s,box-shadow .2s; }
+  .stat-card:hover { transform:translateY(-3px); box-shadow:0 8px 28px var(--shadow); }
+  .stat-label { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft); margin-bottom:8px; }
+  .stat-value { font-family:'DM Serif Display',serif; font-size:26px; color:var(--forest); }
+  .stat-sub { font-size:12px; color:var(--sage); margin-top:4px; }
+  .stat-card.highlight { background:var(--forest); border-color:var(--forest); }
+  .stat-card.highlight .stat-label { color:rgba(255,255,255,.5); }
+  .stat-card.highlight .stat-value { color:var(--white); }
+  .stat-card.highlight .stat-sub { color:var(--sage-light); }
+  .content-grid { display:grid; grid-template-columns:1fr 340px; gap:24px; }
+  .card { background:var(--white); border:1px solid var(--border); border-radius:22px; padding:32px; }
+  .card-title { font-family:'DM Serif Display',serif; font-size:20px; color:var(--forest); margin-bottom:24px; }
+  .activity-item { display:flex; align-items:flex-start; gap:16px; padding:16px 0; border-bottom:1px solid var(--border); }
+  .activity-item:last-child { border-bottom:none; padding-bottom:0; }
+  .act-dot { width:36px; height:36px; border-radius:50%; background:var(--sage-pale); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .act-body { flex:1; }
+  .act-title { font-size:14px; font-weight:600; color:var(--ink); margin-bottom:3px; }
+  .act-sub { font-size:13px; color:var(--ink-soft); }
+  .act-date { font-size:12px; color:var(--ink-soft); font-weight:500; white-space:nowrap; }
+  .quick-actions { display:flex; flex-direction:column; gap:14px; }
+  .action-btn { display:flex; align-items:center; gap:14px; padding:18px 20px; border-radius:16px; border:1.5px solid var(--border); background:var(--white); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; color:var(--ink); cursor:pointer; text-decoration:none; transition:all .2s; }
+  .action-btn:hover { border-color:var(--sage); background:var(--sage-pale); color:var(--sage); transform:translateX(4px); }
+  .action-btn.primary { background:var(--forest); color:var(--white); border-color:var(--forest); }
+  .action-btn.primary:hover { background:var(--sage); border-color:var(--sage); color:var(--white); }
+  .action-arrow { margin-left:auto; font-size:16px; }
+  @media (max-width:1100px) { .stats-grid { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:900px) { body { grid-template-columns:1fr; } .sidebar { display:none; } .main { padding:28px 20px 60px; } .content-grid { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo"><span class="logo-dot"></span><span class="logo-text">CardioScan AI</span></div>
+  <div class="nav-section-label">Main</div>
+  <a class="nav-item active" href="/dashboard">Dashboard</a>
+  <a class="nav-item" href="/analyze">New Analysis</a>
+  <a class="nav-item" href="/reports">My Reports</a>
+  <div class="nav-section-label">Account</div>
+  <div class="nav-item">Profile</div>
+  <div class="nav-item">Settings</div>
+  <div class="sidebar-spacer"></div>
+  <button class="logout-btn" id="logoutBtn">Sign Out</button>
+</aside>
+
+<main class="main">
+  <div class="page-header">
+    <h1>Welcome back</h1>
+    <p>Here's your cardiac monitoring overview - Demo Patient</p>
+  </div>
+  <div class="stats-grid" id="statsGrid"></div>
+  <div class="content-grid">
+    <div class="card">
+      <div class="card-title">Recent Activity</div>
+      <div id="activityFeed"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Quick Actions</div>
+      <div class="quick-actions">
+        <a href="/analyze" class="action-btn primary">New ECG Analysis<span class="action-arrow">→</span></a>
+        <a href="/results"  class="action-btn">Last Result<span class="action-arrow">→</span></a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  (async () => {
+    try {
+      const r = await fetch('/api/me');
+      if (!r.ok) throw new Error('unauth');
+    } catch {
+      window.location.href = '/login';
+    }
+  })();
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = '/';
+  });
+
+  fetch('/patient_history')
+    .then(r => {
+      if (!r.ok) throw new Error('auth');
+      return r.json();
+    })
+    .then(data => {
+      const latest = data[0];
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card highlight">
+          <div class="stat-label">Last Diagnosis</div>
+          <div class="stat-value">${latest.diagnosis}</div>
+          <div class="stat-sub">${latest.date}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Risk</div>
+          <div class="stat-value">${latest.risk}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Reports</div>
+          <div class="stat-value">${data.length}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Patient ID</div>
+          <div class="stat-value">${latest.id}</div>
+        </div>`;
+
+      document.getElementById('activityFeed').innerHTML = data.map(r => `
+        <div class="activity-item">
+          <div class="act-dot">✓</div>
+          <div class="act-body">
+            <div class="act-title">ECG Analysis — ${r.diagnosis}</div>
+            <div class="act-sub">Confidence ${r.confidence}%</div>
+          </div>
+          <div class="act-date">${r.date}</div>
+        </div>`).join('');
+    })
+    .catch(() => window.location.href = '/login');
+</script>
+</body>
+</html>

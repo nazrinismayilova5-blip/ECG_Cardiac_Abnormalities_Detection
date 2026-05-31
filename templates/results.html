@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Results — CardioScan AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --sage:#3d7a5e; --sage-light:#6aab8a; --sage-pale:#e8f5ee; --sage-mid:#c2dfd0;
+    --forest:#1a3d2b; --cream:#f7f6f2; --white:#ffffff; --ink:#1c2b22;
+    --ink-soft:#4a5e52; --border:#d4e8dc; --shadow:rgba(61,122,94,0.12);
+    --warn:#e67e22; --warn-bg:#fef3e2; --danger:#c0392b; --danger-bg:#fdf0ee;
+    --ok:#3d7a5e; --ok-bg:#e8f5ee;
+  }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--ink); }
+
+  .topbar { background:var(--white); border-bottom:1px solid var(--border); padding:18px 48px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:10; }
+  .logo { font-family:'DM Serif Display',serif; color:var(--forest); text-decoration:none; font-size:20px; display:flex; align-items:center; gap:8px; }
+  .logo-dot { width:7px; height:7px; border-radius:50%; background:var(--sage-light); }
+  .topbar-actions { display:flex; gap:12px; }
+  .topbar-btn { padding:9px 22px; border-radius:50px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; text-decoration:none; cursor:pointer; border:1.5px solid var(--border); background:var(--white); color:var(--ink); transition:all .2s; }
+  .topbar-btn:hover { border-color:var(--sage); color:var(--sage); }
+  .topbar-btn.primary { background:var(--forest); color:var(--white); border-color:var(--forest); }
+  .topbar-btn.primary:hover { background:var(--sage); border-color:var(--sage); }
+
+  .main { max-width:1100px; margin:auto; padding:48px 48px 80px; }
+
+  .verdict-card { background:var(--white); border-radius:28px; padding:44px; display:grid; grid-template-columns:1fr 260px; gap:48px; margin-bottom:24px; box-shadow:0 4px 24px var(--shadow); border:1px solid var(--border); }
+  .risk-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border-radius:50px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px; }
+  .risk-badge.low      { background:var(--ok-bg);     color:var(--ok);     }
+  .risk-badge.moderate { background:var(--warn-bg);   color:var(--warn);   }
+  .risk-badge.high     { background:var(--danger-bg); color:var(--danger); }
+  .risk-badge::before  { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+  .diagnosis-name { font-family:'DM Serif Display',serif; font-size:38px; color:var(--forest); margin-bottom:10px; line-height:1.1; }
+  .diagnosis-desc { font-size:15px; color:var(--ink-soft); line-height:1.6; margin-bottom:24px; }
+
+  .conf-row { display:flex; align-items:center; gap:14px; }
+  .conf-pct { font-family:'DM Serif Display',serif; font-size:28px; color:var(--forest); white-space:nowrap; }
+  .conf-bar { flex:1; height:8px; background:var(--sage-mid); border-radius:50px; overflow:hidden; }
+  .conf-fill { height:100%; width:0; background:linear-gradient(90deg,var(--sage),var(--sage-light)); transition:1.2s cubic-bezier(.4,0,.2,1); border-radius:50px; }
+
+  .alert-card { border-radius:16px; padding:18px 22px; margin-bottom:24px; display:flex; align-items:flex-start; gap:14px; }
+  .alert-card.hidden { display:none; }
+  .alert-card.warn { background:var(--warn-bg); border:1px solid #f0c080; }
+  .alert-card.danger { background:var(--danger-bg); border:1px solid #e8c4c0; }
+  .alert-icon { font-size:22px; flex-shrink:0; margin-top:2px; }
+  .alert-title { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .alert-card.warn  .alert-title { color:var(--warn); }
+  .alert-card.danger .alert-title { color:var(--danger); }
+  .alert-body  { font-size:14px; line-height:1.6; }
+  .alert-card.warn  .alert-body { color:#7d5a1e; }
+  .alert-card.danger .alert-body { color:#7d2b1e; }
+
+  .section-hdr { font-family:'DM Serif Display',serif; font-size:22px; color:var(--forest); margin-bottom:18px; }
+
+  .prob-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:16px; margin-bottom:24px; }
+  .prob-card { background:var(--white); border:1px solid var(--border); border-radius:18px; padding:20px; text-align:center; box-shadow:0 4px 12px var(--shadow); transition:transform .2s; }
+  .prob-card:hover { transform:translateY(-2px); }
+  .prob-card.top { background:var(--sage-pale); border-color:var(--sage-mid); }
+  .prob-abbr { font-family:'DM Serif Display',serif; font-size:22px; color:var(--forest); margin-bottom:6px; }
+  .prob-pct  { font-size:18px; font-weight:600; color:var(--sage); }
+  .prob-full { font-size:11px; color:var(--ink-soft); margin-top:4px; }
+
+  .ecg-card { background:var(--white); border:1px solid var(--border); border-radius:22px; padding:32px; box-shadow:0 4px 12px var(--shadow); }
+  .ecg-note { font-size:12px; color:var(--ink-soft); margin-top:10px; }
+
+  @media (max-width:900px) {
+    .verdict-card { grid-template-columns:1fr; }
+    .prob-grid { grid-template-columns:repeat(3,1fr); }
+    .main { padding:28px 20px 60px; }
+    .topbar { padding:14px 20px; }
+  }
+  @media (max-width:600px) {
+    .prob-grid { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/" class="logo"><span class="logo-dot"></span> CardioScan AI</a>
+  <div class="topbar-actions">
+    <a href="/analyze"   class="topbar-btn primary">+ New Analysis</a>
+    <a href="/dashboard" class="topbar-btn">Dashboard</a>
+  </div>
+</div>
+
+<main class="main">
+
+  <div class="alert-card hidden" id="alertCard">
+    <div class="alert-icon">⚠️</div>
+    <div>
+      <div class="alert-title" id="alertTitle"></div>
+      <div class="alert-body"  id="alertBody"></div>
+    </div>
+  </div>
+
+  <div class="verdict-card">
+    <div>
+      <div class="risk-badge" id="riskBadge">—</div>
+      <div class="diagnosis-name" id="diagName">—</div>
+      <div class="diagnosis-desc" id="diagDesc">—</div>
+      <div class="conf-row">
+        <div class="conf-pct" id="confPct">—</div>
+        <div class="conf-bar"><div class="conf-fill" id="confFill"></div></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;">
+      <canvas id="donutChart" width="220" height="220"></canvas>
+    </div>
+  </div>
+
+  <div class="section-hdr">Per-class confidence</div>
+  <div class="prob-grid" id="probGrid"></div>
+
+  <div class="ecg-card">
+    <div class="section-hdr">ECG Signal Preview</div>
+    <canvas id="ecgChart"></canvas>
+    <p class="ecg-note">Preview uses simulated waveform for display purposes. Actual signal data is processed server-side.</p>
+  </div>
+
+</main>
+
+<script>
+const CLASS_NAMES = ['NORM','MI','STTC','CD','HYP'];
+const CLASS_FULL  = {
+  NORM:'Normal ECG',
+  MI:'Myocardial Infarction',
+  STTC:'ST/T Wave Abnormality',
+  CD:'Conduction Disturbance',
+  HYP:'Ventricular Hypertrophy'
+};
+const CLASS_DESC = {
+  NORM:'No significant cardiac abnormalities detected in this recording.',
+  MI:'Pattern consistent with myocardial infarction. Immediate clinical review recommended.',
+  STTC:'ST-segment or T-wave changes detected. May indicate ischaemia or electrolyte imbalance.',
+  CD:'Conduction abnormality pattern detected. Further evaluation advised.',
+  HYP:'Ventricular hypertrophy pattern detected. Clinical correlation recommended.',
+};
+const RISK_CLASS = { NORM:'low', MI:'high', STTC:'moderate', CD:'moderate', HYP:'moderate' };
+const RISK_LABEL = { NORM:'Low Risk', MI:'High Risk', STTC:'Moderate Risk', CD:'Moderate Risk', HYP:'Moderate Risk' };
+const CHART_COLORS = ['#3d7a5e','#c0392b','#e67e22','#2980b9','#8e44ad'];
+
+const raw = localStorage.getItem('ecg_result');
+if (!raw) {
+  document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;flex-direction:column;gap:16px;">
+    <h2 style="color:#1a3d2b">No result found</h2>
+    <a href="/analyze" style="color:#3d7a5e">Run a new analysis →</a>
+  </div>`;
+  throw 0;
+}
+
+const data  = JSON.parse(raw);
+const probs = data.probabilities;
+const pred  = data.predicted_class;
+
+const badge = document.getElementById('riskBadge');
+badge.textContent = RISK_LABEL[pred] || 'Unknown';
+badge.className   = 'risk-badge ' + (RISK_CLASS[pred] || 'moderate');
+
+document.getElementById('diagName').textContent = CLASS_FULL[pred] || pred;
+document.getElementById('diagDesc').textContent = CLASS_DESC[pred] || '';
+
+const conf = (Math.max(...probs) * 100).toFixed(1);
+document.getElementById('confPct').textContent = conf + '%';
+setTimeout(() => { document.getElementById('confFill').style.width = conf + '%'; }, 120);
+
+if (pred !== 'NORM') {
+  const alertCard = document.getElementById('alertCard');
+  alertCard.classList.remove('hidden');
+  if (pred === 'MI') {
+    alertCard.classList.add('danger');
+    document.getElementById('alertTitle').textContent = '⚠ High Risk Finding Detected';
+    document.getElementById('alertBody').textContent =
+      'The model detected a pattern consistent with Myocardial Infarction. ' +
+      'This is a research tool only — please consult a licensed cardiologist immediately for clinical evaluation.';
+  } else {
+    alertCard.classList.add('warn');
+    document.getElementById('alertTitle').textContent = '⚠ Abnormal Finding Detected';
+    document.getElementById('alertBody').textContent =
+      'The model detected an abnormal pattern in this ECG. ' +
+      'This is a research tool only — please consult a licensed cardiologist for clinical evaluation.';
+  }
+}
+
+const grid = document.getElementById('probGrid');
+CLASS_NAMES.forEach((c, i) => {
+  const pct = (probs[i] * 100).toFixed(1);
+  grid.innerHTML += `
+    <div class="prob-card ${c === pred ? 'top' : ''}">
+      <div class="prob-abbr">${c}</div>
+      <div class="prob-pct">${pct}%</div>
+      <div class="prob-full">${CLASS_FULL[c]}</div>
+    </div>`;
+});
+
+new Chart(document.getElementById('donutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: CLASS_NAMES.map(c => CLASS_FULL[c]),
+    datasets: [{
+      data: probs,
+      backgroundColor: CHART_COLORS,
+      borderWidth: 2,
+      borderColor: '#ffffff'
+    }]
+  },
+  options: {
+    cutout: '68%',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` ${(ctx.raw * 100).toFixed(1)}%` }}
+    }
+  }
+});
+
+const ecgPoints = Array.from({ length: 300 }, (_, i) => {
+  const base = Math.sin(i * 0.3) * 0.15;
+  const qrs  = (i % 50 === 20) ? 1.5 : (i % 50 === 21) ? -0.8 : (i % 50 === 22) ? 0.8 : 0;
+  return base + qrs + (Math.random() - 0.5) * 0.05;
+});
+
+new Chart(document.getElementById('ecgChart'), {
+  type: 'line',
+  data: {
+    labels: ecgPoints.map((_, i) => i),
+    datasets: [{
+      data: ecgPoints,
+      borderColor: '#3d7a5e',
+      borderWidth: 1.5,
+      pointRadius: 0,
+      fill: false,
+      tension: 0.3,
+    }]
+  },
+  options: {
+    responsive: true,
+    animation: false,
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    scales: {
+      x: { display: false },
+      y: { display: false, min: -1.2, max: 2.5 }
+    }
+  }
+});
+</script>
+</body>
+</html>
