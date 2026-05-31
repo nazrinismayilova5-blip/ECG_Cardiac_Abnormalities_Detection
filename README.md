@@ -57,13 +57,13 @@ Download PTB-XL from: https://physionet.org/content/ptb-xl/1.0.3/
 
 **Class distribution (after single-label priority conversion):**
 
-| Class | Number of samples (before balancing) | 
-|---|---|---|
-| NORM | ~9,480 | 
-| MI | ~5,469 | 
-| STTC | ~3,896 | 
-| CD | ~2,417 |
-| HYP | ~537 |
+| Class | Number of samples (before balancing) |
+|-------|-----------------|
+| NORM  | ~9,480          |
+| MI    | ~5,469          |
+| STTC  | ~3,896          |
+| CD    | ~2,417          |
+| HYP   | ~537            |
 
 ---
 
