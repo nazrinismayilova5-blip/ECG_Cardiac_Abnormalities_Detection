@@ -1,8 +1,8 @@
-# CardioScan AI
+# ECG Cardiac Abnormalities Detection
 
 **Automated detection of cardiac abnormalities from 12-lead ECG recordings using multimodal deep learning.**
 
-This project classifies ECGs into five diagnostic categories — Normal (NORM), Myocardial Infarction (MI), ST/T Changes (STTC), Conduction Disturbance (CD), and Ventricular Hypertrophy (HYP) — by fusing three data modalities: raw ECG waveform, patient metadata, and clinical text reports. A FastAPI web application (CardioScan AI) serves the trained model as a patient-facing diagnostic portal.
+This project classifies ECGs into five diagnostic categories: Normal (NORM), Myocardial Infarction (MI), ST/T Changes (STTC), Conduction Disturbance (CD), and Ventricular Hypertrophy (HYP). Classification is done by fusing three data modalities: raw ECG waveform, patient metadata, and clinical text reports. A FastAPI web application (CardioScan AI) serves the trained model as a patient-facing diagnostic portal.
 
 This is an integrated university project covering four modules: **Deep Learning**, **Multimodal Data Analysis**, **Object-Oriented Programming**, and **Computer Networks and Communication in Medicine**.
 
@@ -16,8 +16,8 @@ This is an integrated university project covering four modules: **Deep Learning*
 - [Model Architecture](#model-architecture)
 - [Experiments & Results](#experiments--results)
 - [Web Application](#web-application)
-- [How to Run — Training (Google Colab)](#how-to-run--training-google-colab)
-- [How to Run — Web App (PyCharm / Local)](#how-to-run--web-app-pycharm--local)
+- [How to Run: Training (Google Colab)](#how-to-run--training-google-colab)
+- [How to Run: Web App (PyCharm/Local)](#how-to-run--web-app-pycharm--local)
 - [Environment Variables](#environment-variables)
 - [Dependencies](#dependencies)
 - [Report](#report)
@@ -31,8 +31,8 @@ CardioScan AI is a complete end-to-end pipeline:
 
 1. **Raw ECG signals** (12-lead, 1000 timesteps at 100Hz) are preprocessed and passed through a 1D-CNN residual network.
 2. **Patient metadata** (age, sex, BMI, height, weight, ECG statistics) are processed by a dense network.
-3. **Clinical text reports** (German → English translated, tokenised) are processed by a Bidirectional LSTM.
-4. A **gated fusion module** dynamically weights the three modalities per sample.
+3. **Clinical text reports** (German to English translated, tokenised) are processed by a Bidirectional LSTM.
+4. A **gated fusion module** dynamically weights the three modalities per sample. 
 5. A **hierarchical classifier** first separates Normal from Abnormal, then classifies each Abnormal into MI/STTC/CD/HYP.
 6. The trained model is deployed via a **FastAPI web app** with patient authentication, history tracking, and a full HTML frontend.
 
@@ -40,7 +40,7 @@ CardioScan AI is a complete end-to-end pipeline:
 
 ## Dataset
 
-**PTB-XL** — a large publicly available 12-lead ECG dataset.
+**PTB-XL** is a large publicly available ECG dataset.
 
 | Property | Value |
 |---|---|
@@ -50,7 +50,6 @@ CardioScan AI is a complete end-to-end pipeline:
 | Signal length | 10 seconds (1,000 timesteps) |
 | Leads | 12 |
 | Labels | Five diagnostic superclasses |
-| Source | Physikalisch-Technische Bundesanstalt, Berlin |
 
 Download PTB-XL from: https://physionet.org/content/ptb-xl/1.0.3/
 
