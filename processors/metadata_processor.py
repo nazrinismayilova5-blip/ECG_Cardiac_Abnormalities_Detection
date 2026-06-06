@@ -3,7 +3,7 @@ import numpy as np
 
 class MetadataProcessor:
     def __init__(self):
-        pass  # No scaler — manual normalization matches training
+        pass  # No scaler - manual normalization matches training
 
     def process(self, metadata: dict, ecg: np.ndarray = None, text: str = "") -> np.ndarray:
         age    = float(metadata.get("age", 0))
