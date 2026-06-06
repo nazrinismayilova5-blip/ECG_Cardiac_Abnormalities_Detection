@@ -305,10 +305,10 @@ np.savetxt('test_ecg.csv', dummy, delimiter=',')
 
 ## Environment Variables
 
-| Variable | Description | Default |
+| Variable | Description | 
 |---|---|---|
-| `DEMO_EMAIL` | Login email for demo user | — |
-| `DEMO_PASSWORD` | Login password for demo user | — |
+| `DEMO_EMAIL` | Login email for demo user |
+| `DEMO_PASSWORD` | Login password for demo user |
 
 > Never commit your real `.env` file. Only `.env.example` is safe to push.
 
