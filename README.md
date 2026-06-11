@@ -119,9 +119,9 @@ Dense layer               Dropout              Dense layer
      │                      │                      │
   Gate      ──────────     Gate     ──────────    Gate
      │  (sigmoid)           │  (sigmoid)           │  (sigmoid)
-  Hadamard             Hadamard               Hadamard
+  Hadamard               Hadamard               Hadamard
      └──────────────────────┴──────────────────────┘
-                           Concat 
+                          Concat 
                    Dense layer + DropOut
                             │
               ┌─────────────┴─────────────┐
